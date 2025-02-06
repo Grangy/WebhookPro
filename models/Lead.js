@@ -16,7 +16,6 @@ const leadSchema = new mongoose.Schema({
   },
   source: { 
     type: String, 
-    enum: ['facebook', 'google', 'website', 'other'], 
     required: false 
   },
   status: { 
