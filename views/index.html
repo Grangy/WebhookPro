@@ -63,9 +63,11 @@
                         <tr>
                             <th class="px-6 py-4 text-white font-semibold text-left">Контакт</th>
                             <th class="px-6 py-4 text-white font-semibold text-left hidden md:table-cell">Телефон</th>
-                            <th class="px-6 py-4 text-white font-semibold text-center hidden lg:table-cell">Источник</th>
+                            <th class="px-6 py-4 text-white font-semibold text-center hidden lg:table-cell">Источник
+                            </th>
                             <th class="px-6 py-4 text-white font-semibold text-center">Статус</th>
-                            <th class="px-6 py-4 text-white font-semibold text-center hidden xl:table-cell">Ответственный</th>
+                            <th class="px-6 py-4 text-white font-semibold text-center hidden xl:table-cell">
+                                Ответственный</th>
                             <th class="px-6 py-4 text-white font-semibold text-right">Последняя активность</th>
                             <th class="px-6 py-4 text-white font-semibold text-center">Детали</th>
                         </tr>
@@ -113,6 +115,18 @@
             } finally {
                 document.getElementById('loadingState').classList.add('hidden');
             }
+        }
+
+        // Функция для привязки обработчика событий ко всем кнопкам "Детали"
+        function attachDetailsButtons() {
+            const buttons = document.querySelectorAll('button[data-lead]');
+
+            buttons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const lead = JSON.parse(e.target.getAttribute('data-lead'));
+                    showLeadDetails(lead);
+                });
+            });
         }
 
         function showLeadDetails(lead) {
@@ -164,52 +178,53 @@
         function renderLeads(leads) {
             const tableBody = document.getElementById('leadsTableBody');
             tableBody.innerHTML = leads.map((lead, index) => `
-                <tr class="lead-row hover:bg-gray-50 transition-colors duration-200"
-                    style="animation-delay: ${index * 0.05}s">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-10 w-10">
-                                <img class="rounded-full" src="https://i.pravatar.cc/40?u=${lead.email}" alt="${lead.name}">
-                            </div>
-                            <div class="ml-4">
-                                <div class="font-medium text-gray-900">${lead.name}</div>
-                                <div class="text-gray-500 text-sm">${lead.email}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-gray-600 hidden md:table-cell">${lead.phone || 'Н/Д'}</td>
-                    <td class="px-6 py-4 text-center hidden lg:table-cell">${lead.source}</td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="status-badge inline-flex items-center px-3 py-1 rounded-full text-sm ${statusColors[lead.status]}">
-                            ${lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-center hidden xl:table-cell">
-                        <div class="flex items-center justify-center">
-                            <img class="h-8 w-8 rounded-full" src="https://i.pravatar.cc/40?u=${lead.assignedTo}" alt="${lead.assignedTo}">
-                            <span class="ml-2 font-medium">${lead.assignedTo}</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="text-sm text-gray-500">
-                            <i class="fas fa-clock mr-2"></i>
-                            ${new Date(lead.timestamp).toLocaleDateString('ru-RU', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <button class="px-4 py-2 bg-blue-500 text-white rounded-lg" onclick="showLeadDetails(${JSON.stringify(lead)})">
-                            Детали
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
+        <tr class="lead-row hover:bg-gray-50 transition-colors duration-200" style="animation-delay: ${index * 0.05}s">
+            <td class="px-6 py-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                        <img class="rounded-full" src="https://i.pravatar.cc/40?u=${lead.email}" alt="${lead.name}">
+                    </div>
+                    <div class="ml-4">
+                        <div class="font-medium text-gray-900">${lead.name}</div>
+                        <div class="text-gray-500 text-sm">${lead.email}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4 text-gray-600 hidden md:table-cell">${lead.phone || 'Н/Д'}</td>
+            <td class="px-6 py-4 text-center hidden lg:table-cell">${lead.source}</td>
+            <td class="px-6 py-4 text-center">
+                <span class="status-badge inline-flex items-center px-3 py-1 rounded-full text-sm ${statusColors[lead.status]}">
+                    ${lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                </span>
+            </td>
+            <td class="px-6 py-4 text-center hidden xl:table-cell">
+                <div class="flex items-center justify-center">
+                    <img class="h-8 w-8 rounded-full" src="https://i.pravatar.cc/40?u=${lead.assignedTo}" alt="${lead.assignedTo}">
+                    <span class="ml-2 font-medium">${lead.assignedTo}</span>
+                </div>
+            </td>
+            <td class="px-6 py-4 text-right">
+                <div class="text-sm text-gray-500">
+                    <i class="fas fa-clock mr-2"></i>
+                    ${new Date(lead.timestamp).toLocaleDateString('ru-RU', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}
+                </div>
+            </td>
+            <td class="px-6 py-4 text-center">
+                <button class="px-4 py-2 bg-blue-500 text-white rounded-lg" data-lead='${JSON.stringify(lead)}'>
+                    Детали
+                </button>
+            </td>
+        </tr>
+    `).join('');
 
+            // Привязать обработчики событий для кнопок после рендеринга
+            attachDetailsButtons();
+        }
         // Добавляем debounce для поиска
         let searchTimeout;
         document.getElementById('searchInput').addEventListener('input', (e) => {
