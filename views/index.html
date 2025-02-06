@@ -31,7 +31,7 @@
   <script>
     // Fetch leads from the server
     async function fetchLeads() {
-      const response = await fetch('/api/leads');
+      const response = await fetch('http://213.159.208.72:6622/api/leads');
       const leads = await response.json();
       return leads;
     }
