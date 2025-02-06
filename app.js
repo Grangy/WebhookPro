@@ -6,15 +6,15 @@ const leadRoutes = require('./routes/leadRoutes');
 const path = require('path');
 const cors = require('cors');
 
+dotenv.config();
+
+const app = express();
+
 app.use(cors({
   origin: '*', // Разрешить запросы с любых источников
   methods: ['GET', 'POST'], // Разрешенные HTTP методы
   allowedHeaders: ['Content-Type', 'Authorization'], // Разрешенные заголовки
 }));
-
-dotenv.config();
-
-const app = express();
 
 // Подключаем базу данных
 connectDB();
