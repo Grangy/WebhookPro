@@ -4,7 +4,13 @@ const connectDB = require('./config/db');
 const dotenv = require('dotenv');
 const leadRoutes = require('./routes/leadRoutes');
 const path = require('path');
+const cors = require('cors');
 
+app.use(cors({
+  origin: '*', // Разрешить запросы с любых источников
+  methods: ['GET', 'POST'], // Разрешенные HTTP методы
+  allowedHeaders: ['Content-Type', 'Authorization'], // Разрешенные заголовки
+}));
 
 dotenv.config();
 
