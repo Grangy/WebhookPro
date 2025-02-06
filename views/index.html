@@ -4,82 +4,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leads Table</title>
+    <title>Leads Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Font Awesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .lead-row {
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+        
+        .status-badge {
+            transition: all 0.2s ease;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100 p-8">
-    <div class="container mx-auto">
-        <h1 class="text-2xl font-bold mb-4">Leads Table</h1>
-        <input type="text" id="searchInput" placeholder="Search by name, email, or status..."
-            class="mb-4 p-2 border rounded w-full">
-        <table class="min-w-full bg-white border rounded-lg">
-            <thead>
-                <tr>
-                    <th class="py-2 px-4 border-b">Name</th>
-                    <th class="py-2 px-4 border-b">Email</th>
-                    <th class="py-2 px-4 border-b">Phone</th>
-                    <th class="py-2 px-4 border-b">Source</th>
-                    <th class="py-2 px-4 border-b">Status</th>
-                    <th class="py-2 px-4 border-b">Assigned To</th>
-                    <th class="py-2 px-4 border-b">Timestamp</th>
-                </tr>
-            </thead>
-            <tbody id="leadsTableBody">
-                <!-- Leads will be populated here -->
-            </tbody>
-        </table>
+<body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen p-8">
+    <div class="max-w-7xl mx-auto">
+        <div class="mb-8 space-y-4">
+            <h1 class="text-4xl font-bold text-gray-800">
+                <i class="fas fa-users mr-3 text-blue-500"></i>Leads Dashboard
+            </h1>
+            
+            <div class="relative max-w-xl">
+                <input type="text" id="searchInput" 
+                    class="w-full pl-12 pr-4 py-3 rounded-lg bg-white shadow-sm border border-gray-200 
+                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                           transition-all duration-200"
+                    placeholder="Search leads...">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden custom-scrollbar">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gradient-to-r from-blue-500 to-purple-600">
+                        <tr>
+                            <th class="px-6 py-4 text-white font-semibold text-left">Contact</th>
+                            <th class="px-6 py-4 text-white font-semibold text-left hidden md:table-cell">Phone</th>
+                            <th class="px-6 py-4 text-white font-semibold text-center hidden lg:table-cell">Source</th>
+                            <th class="px-6 py-4 text-white font-semibold text-center">Status</th>
+                            <th class="px-6 py-4 text-white font-semibold text-center hidden xl:table-cell">Assigned To</th>
+                            <th class="px-6 py-4 text-white font-semibold text-right">Last Activity</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100" id="leadsTableBody">
+                        <!-- Leads will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loadingState" class="p-8 text-center text-gray-500">
+                <i class="fas fa-spinner fa-spin text-2xl"></i>
+                <p class="mt-2">Loading leads...</p>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Fetch leads from the server
+        // Иконки для разных источников
+        const sourceIcons = {
+            website: 'fa-globe',
+            social: 'fa-hashtag',
+            referral: 'fa-user-friends',
+            email: 'fa-envelope'
+        };
+
+        // Цвета для статусов
+        const statusColors = {
+            new: 'bg-blue-100 text-blue-800',
+            contacted: 'bg-yellow-100 text-yellow-800',
+            working: 'bg-purple-100 text-purple-800',
+            converted: 'bg-green-100 text-green-800',
+            closed: 'bg-gray-100 text-gray-800'
+        };
+
         async function fetchLeads() {
-            // API будет доступен по /api/leads, так как все запросы идут через один сервер и домен
-            const response = await fetch('/api/leads');
-            const leads = await response.json();
-            return leads;
+            // Показываем состояние загрузки
+            document.getElementById('loadingState').classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/api/leads');
+                const leads = await response.json();
+                return leads;
+            } finally {
+                document.getElementById('loadingState').classList.add('hidden');
+            }
         }
 
-
-        // Render leads in the table
         function renderLeads(leads) {
             const tableBody = document.getElementById('leadsTableBody');
-            tableBody.innerHTML = leads.map(lead => `
-        <tr>
-          <td class="py-2 px-4 border-b">${lead.name}</td>
-          <td class="py-2 px-4 border-b">${lead.email}</td>
-          <td class="py-2 px-4 border-b">${lead.phone}</td>
-          <td class="py-2 px-4 border-b">${lead.source}</td>
-          <td class="py-2 px-4 border-b">${lead.status}</td>
-          <td class="py-2 px-4 border-b">${lead.assignedTo}</td>
-          <td class="py-2 px-4 border-b">${new Date(lead.timestamp).toLocaleString()}</td>
-        </tr>
-      `).join('');
+            tableBody.innerHTML = leads.map((lead, index) => `
+                <tr class="lead-row hover:bg-gray-50 transition-colors duration-200"
+                    style="animation-delay: ${index * 0.05}s">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <img class="rounded-full" src="https://i.pravatar.cc/40?u=${lead.email}" alt="${lead.name}">
+                            </div>
+                            <div class="ml-4">
+                                <div class="font-medium text-gray-900">${lead.name}</div>
+                                <div class="text-gray-500 text-sm">${lead.email}</div>
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <td class="px-6 py-4 text-gray-600 hidden md:table-cell">
+                        <div class="flex items-center">
+                            <i class="fas fa-phone mr-2 text-gray-400"></i>
+                            ${lead.phone || 'N/A'}
+                        </div>
+                    </td>
+                    
+                    <td class="px-6 py-4 text-center hidden lg:table-cell">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm 
+                                    bg-gray-100 text-gray-800">
+                            <i class="fas ${sourceIcons[lead.source] || 'fa-question'} mr-2"></i>
+                            ${lead.source}
+                        </span>
+                    </td>
+                    
+                    <td class="px-6 py-4 text-center">
+                        <span class="status-badge inline-flex items-center px-3 py-1 rounded-full text-sm 
+                                  ${statusColors[lead.status]}">
+                            ${lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                        </span>
+                    </td>
+                    
+                    <td class="px-6 py-4 text-center hidden xl:table-cell">
+                        <div class="flex items-center justify-center">
+                            <img class="h-8 w-8 rounded-full" 
+                                 src="https://i.pravatar.cc/40?u=${lead.assignedTo}" 
+                                 alt="${lead.assignedTo}">
+                            <span class="ml-2 font-medium">${lead.assignedTo}</span>
+                        </div>
+                    </td>
+                    
+                    <td class="px-6 py-4 text-right">
+                        <div class="text-sm text-gray-500">
+                            <i class="fas fa-clock mr-2"></i>
+                            ${new Date(lead.timestamp).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        // Filter leads based on search input
-        function filterLeads(leads, searchText) {
-            return leads.filter(lead =>
-                lead.name.toLowerCase().includes(searchText.toLowerCase()) ||
-                lead.email.toLowerCase().includes(searchText.toLowerCase()) ||
-                lead.status.toLowerCase().includes(searchText.toLowerCase())
-            );
-        }
-
-        // Event listener for search input
-        document.getElementById('searchInput').addEventListener('input', async (e) => {
-            const searchText = e.target.value;
-            const leads = await fetchLeads();
-            const filteredLeads = filterLeads(leads, searchText);
-            renderLeads(filteredLeads);
+        // Добавляем debounce для поиска
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                const searchText = e.target.value;
+                const leads = await fetchLeads();
+                const filteredLeads = filterLeads(leads, searchText);
+                renderLeads(filteredLeads);
+            }, 300);
         });
 
-        // Initial load
+        // Инициализация
         (async () => {
             const leads = await fetchLeads();
             renderLeads(leads);
         })();
     </script>
 </body>
-
 </html>
