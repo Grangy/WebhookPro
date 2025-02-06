@@ -3,6 +3,8 @@ const express = require('express');
 const connectDB = require('./config/db');
 const dotenv = require('dotenv');
 const leadRoutes = require('./routes/leadRoutes');
+const path = require('path');
+
 
 dotenv.config();
 
