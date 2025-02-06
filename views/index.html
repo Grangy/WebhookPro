@@ -10,24 +10,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         .lead-row {
             animation: slideIn 0.3s ease-out forwards;
         }
-        
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #cbd5e0;
             border-radius: 4px;
         }
-        
+
         .status-badge {
             transition: all 0.2s ease;
         }
@@ -40,13 +47,11 @@
             <h1 class="text-4xl font-bold text-gray-800">
                 <i class="fas fa-users mr-3 text-blue-500"></i>Leads Dashboard
             </h1>
-            
+
             <div class="relative max-w-xl">
-                <input type="text" id="searchInput" 
-                    class="w-full pl-12 pr-4 py-3 rounded-lg bg-white shadow-sm border border-gray-200 
+                <input type="text" id="searchInput" class="w-full pl-12 pr-4 py-3 rounded-lg bg-white shadow-sm border border-gray-200 
                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                           transition-all duration-200"
-                    placeholder="Search leads...">
+                           transition-all duration-200" placeholder="Search leads...">
                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
             </div>
         </div>
@@ -60,7 +65,8 @@
                             <th class="px-6 py-4 text-white font-semibold text-left hidden md:table-cell">Phone</th>
                             <th class="px-6 py-4 text-white font-semibold text-center hidden lg:table-cell">Source</th>
                             <th class="px-6 py-4 text-white font-semibold text-center">Status</th>
-                            <th class="px-6 py-4 text-white font-semibold text-center hidden xl:table-cell">Assigned To</th>
+                            <th class="px-6 py-4 text-white font-semibold text-center hidden xl:table-cell">Assigned To
+                            </th>
                             <th class="px-6 py-4 text-white font-semibold text-right">Last Activity</th>
                         </tr>
                     </thead>
@@ -69,7 +75,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <!-- Loading State -->
             <div id="loadingState" class="p-8 text-center text-gray-500">
                 <i class="fas fa-spinner fa-spin text-2xl"></i>
@@ -99,7 +105,7 @@
         async function fetchLeads() {
             // Показываем состояние загрузки
             document.getElementById('loadingState').classList.remove('hidden');
-            
+
             try {
                 const response = await fetch('/api/leads');
                 const leads = await response.json();
@@ -109,67 +115,95 @@
             }
         }
 
+        function showLeadDetails(lead) {
+            // Создайте строку или модальное окно для отображения дополнительной информации
+            const modalContent = `
+        <div class="p-4">
+            <h2 class="text-xl font-bold text-gray-800">Lead Details</h2>
+            <div class="mt-4">
+                <p><strong>Email:</strong> ${lead.email || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${lead.phone || 'N/A'}</p>
+                <p><strong>Source:</strong> ${lead.source || 'N/A'}</p>
+                <p><strong>Status:</strong> ${lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}</p>
+                <p><strong>Assigned To:</strong> ${lead.assignedTo || 'N/A'}</p>
+                <p><strong>Timestamp:</strong> ${new Date(lead.timestamp).toLocaleString()}</p>
+                <div class="mt-4">
+                    <h3 class="font-semibold">UTM Information:</h3>
+                    <p><strong>UTM Source:</strong> ${lead.utmInfo?.utmSource || 'N/A'}</p>
+                    <p><strong>UTM Medium:</strong> ${lead.utmInfo?.utmMedium || 'N/A'}</p>
+                    <p><strong>UTM Campaign:</strong> ${lead.utmInfo?.utmCampaign || 'N/A'}</p>
+                    <p><strong>UTM Term:</strong> ${lead.utmInfo?.utmTerm || 'N/A'}</p>
+                    <p><strong>UTM Content:</strong> ${lead.utmInfo?.utmContent || 'N/A'}</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+            // Показываем модальное окно или дополнительный блок с информацией
+            const modal = document.createElement('div');
+            modal.classList.add('fixed', 'inset-0', 'bg-gray-500', 'bg-opacity-75', 'z-50', 'flex', 'items-center',
+                'justify-center');
+            modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-lg w-full">
+            <button class="absolute top-2 right-2 text-gray-500" onclick="closeModal()">×</button>
+            ${modalContent}
+        </div>
+    `;
+            document.body.appendChild(modal);
+        }
+
+        // Функция для закрытия модального окна
+        function closeModal() {
+            const modal = document.querySelector('.fixed');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Функция для рендеринга лидов
         function renderLeads(leads) {
             const tableBody = document.getElementById('leadsTableBody');
             tableBody.innerHTML = leads.map((lead, index) => `
-                <tr class="lead-row hover:bg-gray-50 transition-colors duration-200"
-                    style="animation-delay: ${index * 0.05}s">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-10 w-10">
-                                <img class="rounded-full" src="https://i.pravatar.cc/40?u=${lead.email}" alt="${lead.name}">
-                            </div>
-                            <div class="ml-4">
-                                <div class="font-medium text-gray-900">${lead.name}</div>
-                                <div class="text-gray-500 text-sm">${lead.email}</div>
-                            </div>
-                        </div>
-                    </td>
-                    
-                    <td class="px-6 py-4 text-gray-600 hidden md:table-cell">
-                        <div class="flex items-center">
-                            <i class="fas fa-phone mr-2 text-gray-400"></i>
-                            ${lead.phone || 'N/A'}
-                        </div>
-                    </td>
-                    
-                    <td class="px-6 py-4 text-center hidden lg:table-cell">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm 
-                                    bg-gray-100 text-gray-800">
-                            <i class="fas ${sourceIcons[lead.source] || 'fa-question'} mr-2"></i>
-                            ${lead.source}
-                        </span>
-                    </td>
-                    
-                    <td class="px-6 py-4 text-center">
-                        <span class="status-badge inline-flex items-center px-3 py-1 rounded-full text-sm 
-                                  ${statusColors[lead.status]}">
-                            ${lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
-                        </span>
-                    </td>
-                    
-                    <td class="px-6 py-4 text-center hidden xl:table-cell">
-                        <div class="flex items-center justify-center">
-                            <img class="h-8 w-8 rounded-full" 
-                                 src="https://i.pravatar.cc/40?u=${lead.assignedTo}" 
-                                 alt="${lead.assignedTo}">
-                            <span class="ml-2 font-medium">${lead.assignedTo}</span>
-                        </div>
-                    </td>
-                    
-                    <td class="px-6 py-4 text-right">
-                        <div class="text-sm text-gray-500">
-                            <i class="fas fa-clock mr-2"></i>
-                            ${new Date(lead.timestamp).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+        <tr class="lead-row hover:bg-gray-50 transition-colors duration-200"
+            style="animation-delay: ${index * 0.05}s"
+            onclick="showLeadDetails(${JSON.stringify(lead)})">
+            <td class="px-6 py-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                        <img class="rounded-full" src="https://i.pravatar.cc/40?u=${lead.email}" alt="${lead.name}">
+                    </div>
+                    <div class="ml-4">
+                        <div class="font-medium text-gray-900">${lead.name}</div>
+                        <div class="text-gray-500 text-sm">${lead.email}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4 text-gray-600 hidden md:table-cell">${lead.phone || 'N/A'}</td>
+            <td class="px-6 py-4 text-center hidden lg:table-cell">${lead.source}</td>
+            <td class="px-6 py-4 text-center">
+                <span class="status-badge inline-flex items-center px-3 py-1 rounded-full text-sm ${statusColors[lead.status]}">
+                    ${lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                </span>
+            </td>
+            <td class="px-6 py-4 text-center hidden xl:table-cell">
+                <div class="flex items-center justify-center">
+                    <img class="h-8 w-8 rounded-full" src="https://i.pravatar.cc/40?u=${lead.assignedTo}" alt="${lead.assignedTo}">
+                    <span class="ml-2 font-medium">${lead.assignedTo}</span>
+                </div>
+            </td>
+            <td class="px-6 py-4 text-right">
+                <div class="text-sm text-gray-500">
+                    <i class="fas fa-clock mr-2"></i>
+                    ${new Date(lead.timestamp).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}
+                </div>
+            </td>
+        </tr>
+    `).join('');
         }
 
         // Добавляем debounce для поиска
@@ -191,4 +225,5 @@
         })();
     </script>
 </body>
+
 </html>
