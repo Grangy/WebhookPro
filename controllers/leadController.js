@@ -29,3 +29,12 @@ exports.receiveLead = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+exports.getLeads = async (req, res) => {
+  try {
+    const leads = await Lead.find();
+    res.json(leads);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

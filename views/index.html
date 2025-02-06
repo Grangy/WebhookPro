@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads Table</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+  <div class="container mx-auto">
+    <h1 class="text-2xl font-bold mb-4">Leads Table</h1>
+    <input type="text" id="searchInput" placeholder="Search by name, email, or status..." class="mb-4 p-2 border rounded w-full">
+    <table class="min-w-full bg-white border rounded-lg">
+      <thead>
+        <tr>
+          <th class="py-2 px-4 border-b">Name</th>
+          <th class="py-2 px-4 border-b">Email</th>
+          <th class="py-2 px-4 border-b">Phone</th>
+          <th class="py-2 px-4 border-b">Source</th>
+          <th class="py-2 px-4 border-b">Status</th>
+          <th class="py-2 px-4 border-b">Assigned To</th>
+          <th class="py-2 px-4 border-b">Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="leadsTableBody">
+        <!-- Leads will be populated here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Fetch leads from the server
+    async function fetchLeads() {
+      const response = await fetch('/api/leads');
+      const leads = await response.json();
+      return leads;
+    }
+
+    // Render leads in the table
+    function renderLeads(leads) {
+      const tableBody = document.getElementById('leadsTableBody');
+      tableBody.innerHTML = leads.map(lead => `
+        <tr>
+          <td class="py-2 px-4 border-b">${lead.name}</td>
+          <td class="py-2 px-4 border-b">${lead.email}</td>
+          <td class="py-2 px-4 border-b">${lead.phone}</td>
+          <td class="py-2 px-4 border-b">${lead.source}</td>
+          <td class="py-2 px-4 border-b">${lead.status}</td>
+          <td class="py-2 px-4 border-b">${lead.assignedTo}</td>
+          <td class="py-2 px-4 border-b">${new Date(lead.timestamp).toLocaleString()}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Filter leads based on search input
+    function filterLeads(leads, searchText) {
+      return leads.filter(lead =>
+        lead.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        lead.email.toLowerCase().includes(searchText.toLowerCase()) ||
+        lead.status.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+
+    // Event listener for search input
+    document.getElementById('searchInput').addEventListener('input', async (e) => {
+      const searchText = e.target.value;
+      const leads = await fetchLeads();
+      const filteredLeads = filterLeads(leads, searchText);
+      renderLeads(filteredLeads);
+    });
+
+    // Initial load
+    (async () => {
+      const leads = await fetchLeads();
+      renderLeads(leads);
+    })();
+  </script>
+</body>
+</html>
